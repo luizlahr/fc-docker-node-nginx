@@ -1,0 +1,62 @@
+services:
+
+  nginx:
+    build:
+      context: .
+      dockerfile: Dockerfile.nginx
+    image: luizlahr/nginx:prod
+    container_name: nginx
+    networks:
+      - desafio-net
+    ports:
+      - "8080:80"
+    depends_on:
+      - app
+      - db
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.node
+    container_name: app
+    networks:
+      - desafio-net
+    volumes:
+      - ./node:/usr/src/app
+    tty: true
+    ports:
+      - "3000:3000"
+    depends_on:
+      - db
+
+  db:
+    image: mariadb:10.2
+    command: --innodb-use-native-aio=0
+    container_name: db
+    restart: always
+    tty: true
+    volumes:
+      - ./mysql:/var/lib/mysql
+    environment:
+      MARIADB_DATABASE: fullcycle
+      MARIADB_ROOT_PASSWORD: root
+    networks:
+      - desafio-net
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "mysqladmin",
+          "ping",
+          "-h",
+          "localhost",
+          "-u",
+          "root",
+          "-p$$MYSQL_ROOT_PASSWORD"
+        ]
+      interval: 5s
+      timeout: 10s
+      retries: 3
+
+networks:
+  desafio-net:
+    driver: bridge
