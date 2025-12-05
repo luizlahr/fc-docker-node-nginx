@@ -106,8 +106,10 @@ async function getPeopleList() {
 				console.error("Error getting people list:", error);
 				reject(error);
 			} else {
+				// Garantir que results seja sempre um array
+				const people = Array.isArray(results) ? results : [];
 				let names = "";
-				for (const person of results) {
+				for (const person of people) {
 					names += `<li>${person.name}</li>`;
 				}
 				resolve(`<ul>${names}</ul>`);
